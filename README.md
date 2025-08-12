@@ -1,5 +1,6 @@
 # Unified 3D Reconstruction and Semantic Understanding via Generalizable Gaussian Splatting from Unposed Multi-View Images
-<a href="[https://arxiv.org/abs/2411.16443](https://arxiv.org/abs/2508.03643)"><img src="https://img.shields.io/badge/arXiv-2411.16443-b31b1b.svg"></a>
+
+[![arXiv](https://img.shields.io/badge/arXiv-2508.03643-b31b1b.svg?logo=arxiv)](https://arxiv.org/abs/2508.03643)
 
 <div style="background-color:white; padding:10px; display:inline-block;">
  <img src="https://github.com/HorizonRobotics/Uni3R/blob/main/figure1.png">
