@@ -3,6 +3,11 @@
 
 ![Uni3R](https://github.com/HorizonRobotics/Uni3R/blob/main/figure1.png)
 
+<div style="background-color:white; padding:10px; display:inline-block;">
+ <img src="https://github.com/HorizonRobotics/Uni3R/blob/main/figure1.png">
+</div>
+<p align="justify">Uni3R takes unposed multi-view images as input and produces a unified 3D Gaussian scene representation, enabling state-of-the-art performance in view synthesis, semantic segmentation, and depth estimation within a single forward pass.</p>
+
 > The code for this project will be open-sourced soon. Stay tuned!
 
 
