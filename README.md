@@ -1,6 +1,6 @@
 # Unified 3D Reconstruction and Semantic Understanding via Generalizable Gaussian Splatting from Unposed Multi-View Images
 
-[![Project page](https://img.shields.io/badge/project%20page-%2FUni3R-blue)]([https://xiangyu1sun.github.io/Uni3R/])
+[![Project page](https://img.shields.io/badge/project%20page-%2FUni3R-blue)](https://xiangyu1sun.github.io/Uni3R/)
 [![arXiv](https://img.shields.io/badge/arXiv-2508.03643-b31b1b.svg?logo=arxiv)](https://arxiv.org/abs/2508.03643)
 
 <div style="background-color:white; padding:10px; display:inline-block;">
