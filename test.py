@@ -10,7 +10,7 @@
 # DeiT: https://github.com/facebookresearch/deit
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
-from large_spatial_model.utils.path_manager import init_all_submodules
+from uni3r.utils.path_manager import init_all_submodules
 init_all_submodules()
 import os
 import argparse
@@ -22,20 +22,20 @@ import torch
 torch.backends.cuda.matmul.allow_tf32 = True  # for gpu >= Ampere and pytorch >= 1.12
 
 # Model
-from large_spatial_model.vg3r import VG3R
+from uni3r.uni3r import Uni3R
 # Dataset
-from large_spatial_model.datasets.testdata import TestDataset  # noqa
+from uni3r.datasets.testdata import TestDataset  # noqa
 import dust3r.datasets
 dust3r.datasets.TestDataset = TestDataset
 # Loss
-from large_spatial_model.loss import loss_of_one_batch  # noqa
-from large_spatial_model.loss import TestLoss
+from uni3r.loss import loss_of_one_batch  # noqa
+from uni3r.loss import TestLoss
 import dust3r.losses
 dust3r.losses.TestLoss = TestLoss
 
 from dust3r.datasets import get_data_loader  # noqa
 from dust3r.losses import *  # noqa: F401, needed when loading the model
-from large_spatial_model.loss import loss_of_one_batch  # noqa
+from uni3r.loss import loss_of_one_batch  # noqa
 
 import croco.utils.misc as misc  # noqa
 
@@ -77,7 +77,7 @@ def main(args):
     print(f'>> Creating test criterion = {args.test_criterion}')
     test_criterion = eval(args.test_criterion).to(device)
     
-    model = VG3R.from_pretrained(args.pretrained, device)
+    model = Uni3R.from_pretrained(args.pretrained, device)
     model.eval()
     
     # Test on datasets

@@ -264,7 +264,7 @@ We use a predefined set of common indoor categories: ['wall', 'floor', 'ceiling'
 
 ### Test Data Loading and Evaluation Workflow
 
-The testing process relies on the `TestDataset` class in `large_spatial_model/datasets/testdata.py`, initialized with `split='test'` and `is_training=False`.
+The testing process relies on the `TestDataset` class in `uni3r/datasets/testdata.py`, initialized with `split='test'` and `is_training=False`.
 
 1.  **View Selection**: The dataset selects test views based on `llff_hold` and `test_ids` parameters for each scene. Typically, frames whose index modulo `llff_hold` falls within `test_ids` are chosen as the core test frames (`target_view`).
 2.  **View Grouping**: For each selected `target_view`, the dataset groups it with its immediate predecessor (`source_view1`) and successor (`source_view2`), forming a tuple of view indices: `(source_view2, target_view, source_view1)`. The test set comprises a series of these `(Scene ID, View Indices Tuple)` pairs.

@@ -1,10 +1,10 @@
 import argparse
 
-from large_spatial_model.utils.path_manager import init_all_submodules
+from uni3r.utils.path_manager import init_all_submodules
 init_all_submodules()
 
-from large_spatial_model.model import LSM_Dust3R
-from large_spatial_model.utils.visualization_utils import render_video_from_file
+from uni3r.model import LSM_Dust3R
+from uni3r.utils.visualization_utils import render_video_from_file
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

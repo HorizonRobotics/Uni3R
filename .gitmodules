@@ -1,9 +1,9 @@
-[submodule "submodules/dust3r"]
-    path = submodules/dust3r
-    url = https://github.com/naver/dust3r.git
 [submodule "submodules/lang_seg"]
     path = submodules/lang_seg
     url = https://github.com/isl-org/lang-seg.git
 [submodule "data_process/scannetpp"]
     path = data_process/scannetpp
     url = https://github.com/zjrandom951/scannetpp_lsm.git
+[submodule "submodules/3d_gaussian_splatting/diff-gaussian-rasterization/third_party/glm"]
+	path = submodules/3d_gaussian_splatting/diff-gaussian-rasterization/third_party/glm
+	url = https://github.com/g-truc/glm.git
