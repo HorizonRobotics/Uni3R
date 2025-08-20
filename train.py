@@ -32,7 +32,7 @@ import yaml
 
 def get_args_parser():
     parser = dust3r_get_args_parser()
-    parser.prog = 'LSM_Dust3R training'
+    parser.prog = 'Uni3R training'
 
     # Load the configuration
     with open("configs/default.yaml", "r") as f:

@@ -1,3 +1,20 @@
+# Project Uni3R
+#
+# Copyright (c) 2025 Horizon Robotics. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -141,59 +158,3 @@ class Uni3R(nn.Module):
         model.load_state_dict(state_dict, strict=False)
         del ckpt
         return model.to(device)
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    from torch.utils.data import DataLoader
-    from uni3r.utils.path_manager import init_all_submodules
-    init_all_submodules()
-
-    # Add configuration file related parameters
-    parser.add_argument(
-        '--config', type=str, default='configs/default.yaml',
-        help='Path to configuration file')
-    parser.add_argument(
-        '--overrides', type=str, nargs='+', default=[],
-        help='Override parameters in config file, format: key=value')
-
-    args = parser.parse_args()
-
-    # Load configuration from YAML file
-    from omegaconf import OmegaConf
-    config = OmegaConf.load(args.config)
-
-    # Process command line override parameters
-    if args.overrides:
-        overrides = OmegaConf.from_dotlist(args.overrides)
-        config = OmegaConf.merge(config, overrides)
-
-    # Convert to LSMConfig type
-    config = LSMConfig(**config)
-
-    # Initialize model
-    model = LSM_Dust3R(config)
-    model.to('cuda')
-    # Load Data
-    from uni3r.datasets.scannet import Scannet
-    dataset = Scannet(split='train', ROOT="data/scannet_processed", resolution=256)
-    # Print dataset
-    print(dataset)
-    # Test model
-    data_loader = DataLoader(dataset, batch_size=3, shuffle=True)
-    data = next(iter(data_loader))
-    # move data to cuda
-    for view in data:
-        view['img'] = view['img'].to('cuda')
-        view['depthmap'] = view['depthmap'].to('cuda')
-        view['camera_pose'] = view['camera_pose'].to('cuda')
-        view['camera_intrinsics'] = view['camera_intrinsics'].to('cuda')
-    # Forward pass
-    output = model(*data[:2])
-
-    # Loss
-    from uni3r.loss import GaussianLoss
-    loss = GaussianLoss()
-    loss_value = loss(*data, *output, model)
-    print(loss_value)
