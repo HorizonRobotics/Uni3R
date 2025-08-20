@@ -5,7 +5,7 @@
 Xiangyu Sun, Haoyi Jiang, Liu Liu, Seungtae Nam, Gyeongjin Kang, Xinjie Wang,</br>
 Wei Sui, Zhizhong Su, Wenyu Liu, Xinggang Wang, Eunbyung Park
 
-[![Project page](https://img.shields.io/badge/project%20page-Uni3R-blue)](https://horizonrobotics.github.io/robot_lab/Uni3R)
+[![Project page](https://img.shields.io/badge/project%20page-Uni3R-blue)](https://horizonrobotics.github.io/robot_lab/uni3R)
 [![arXiv](https://img.shields.io/badge/arXiv-2508.03643-red?logo=arXiv&logoColor=red)](https://arxiv.org/abs/2508.03643)
 
 </div>
