@@ -91,6 +91,14 @@ Optional parameters in `scripts/train.sh`:
 --output_dir "checkpoints/output"
 ```
 
+### Evaluation
+Please run these scripts to do evaluation on ScanNet Dataset, including 2, 8 and 16 views.
+```bash
+bash scripts/test.sh
+bash scripts/test_8views.sh
+bash scripts/test_16views.sh
+```
+
 ## Acknowledgement
 
 This work is built on many amazing research works and open-source projects, thanks a lot to all the authors for sharing!

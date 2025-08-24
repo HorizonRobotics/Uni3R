@@ -42,7 +42,7 @@ import croco.utils.misc as misc  # noqa
 def get_args_parser():
     parser = argparse.ArgumentParser('DUST3R testing', add_help=False)
     parser.add_argument('--pretrained', default=None, help='path of a starting checkpoint')
-    parser.add_argument('--lseg_pretrained', default="checkpoints/demo_e200.ckpt", help='path of lseg_pretrained')
+    parser.add_argument('--lseg_pretrained', default="checkpoints/pretrained_models/demo_e200.ckpt", help='path of lseg_pretrained')
     parser.add_argument('--test_criterion', default=None, type=str, help="test criterion")
     parser.add_argument('--test_dataset', default='[None]', type=str, help="testing set")
     
@@ -76,8 +76,18 @@ def main(args):
     # Load model and criterion
     print(f'>> Creating test criterion = {args.test_criterion}')
     test_criterion = eval(args.test_criterion).to(device)
+
+    import re
+    dataset_string = args.test_dataset
+    pattern = r"num_views=(\d+)"
+    match = re.search(pattern, dataset_string)
+    if match:
+        num_views_str = match.group(1)
+        num_views_value = int(num_views_str)
+    else:
+        raise ValueError("num_views not found in test_dataset")
     
-    model = Uni3R.from_pretrained(args.pretrained, device)
+    model = Uni3R.from_pretrained(args.pretrained, device, num_views_value=num_views_value)
     model.eval()
     
     # Test on datasets

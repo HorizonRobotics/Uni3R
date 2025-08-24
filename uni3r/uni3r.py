@@ -34,11 +34,14 @@ from .utils.weight_modify import checkpoint_filter_fn
 
 class Uni3R(nn.Module):
 
-    def __init__(self, config: LSMConfig):
+    def __init__(self, config: LSMConfig, num_views=2):
         super().__init__()
         self.config = LSMConfig(**config)
 
-        self.vggt = VGGT(patch_size=16)
+        if num_views == 2:
+            self.vggt = VGGT(patch_size=16) # patch_size=16)
+        else:
+            self.vggt = VGGT(patch_size=16, img_size=256)
         _url = "https://huggingface.co/facebook/VGGT-1B/resolve/main/model.pt"
 
         # resize the patch embedding layer: 14 -> 16
@@ -138,9 +141,30 @@ class Uni3R(nn.Module):
                         checkpoint_path: str,
                         use_pretrained_lseg: bool = True,
                         use_pretrained_dust3r: bool = True,
-                        device: str = 'cuda'):
+                        device: str = 'cuda',
+                        num_views_value: int = 2):
+
         ckpt = torch.load(checkpoint_path, map_location='cpu')  # load checkpoint to cpu for saving memory
         args = ckpt['args'].model.replace("ManyAR_PatchEmbed", "PatchEmbedDust3R")
+        if 'VG3R' in args:
+            args = args.replace('VG3R', 'Uni3R')
+
+        if num_views_value == 2:
+            new_param = "num_views=2"
+        elif num_views_value == 8:
+            new_param = "num_views=8"
+        elif num_views_value == 16:
+            new_param = "num_views=16"
+        else:
+            raise ValueError("num_views not found in test_dataset")
+
+        last_paren_index = args.rfind(')')
+        if last_paren_index != -1:
+            if '(' in args and args.rfind('(') < last_paren_index - 1:
+                args = args[:last_paren_index] + f", {new_param}" + args[last_paren_index:]
+            else:
+                args = args[:last_paren_index] + new_param + args[last_paren_index:]
+
         print(f"instantiating {args}")
         model = eval(args)
         state_dict = ckpt['model']
