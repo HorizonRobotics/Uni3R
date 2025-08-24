@@ -2,7 +2,7 @@
 
 # Uni3R: Unified 3D Reconstruction and Semantic Understanding via Generalizable Gaussian Splatting from Unposed Multi-View Images
 
-Xiangyu Sun, Haoyi Jiang, Liu Liu, Seungtae Nam, Gyeongjin Kang, Xinjie Wang,</br>
+Xiangyu Sun*, Haoyi Jiang*, Liu Liu, Seungtae Nam, Gyeongjin Kang, Xinjie Wang,</br>
 Wei Sui, Zhizhong Su, Wenyu Liu, Xinggang Wang, Eunbyung Park
 
 [![Project page](https://img.shields.io/badge/project%20page-Uni3R-blue)](https://horizonrobotics.github.io/robot_lab/uni3R)
