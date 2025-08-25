@@ -101,7 +101,7 @@ bash scripts/test_16views.sh
 
 ## TODO:
 - [x] Release inference code.
-- [x] Release 2, 8 and 16 views checkpoints.
+- [ ] Release 2, 8 and 16 views checkpoints.
 - [ ] Release the training code w/ geometric loss.
 - [ ] Verify the 2 and multi-views training code.
 
