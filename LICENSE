@@ -189,11 +189,11 @@
     
       DUSt3R is used in this project for initialization purposes, 
       3D Gaussian Splatting (3D-GS) is used for differentiable renderer,
+      Visual Geometry Grounded Transformer (VGGT) is used for multi-view feature aggregation,
       Language-driven Semantic Segmentation (LSeg) is used for feature lifting. 
-      The training and other core functionalities of this project are 
-      independent of DUSt3R, 3D Gaussian Splatting, and LSeg and are licensed under the Apache License 2.0. 
+      The training and other core functionalities of this project apart from DUSt3R,
+      3D Gaussian Splatting, VGGT, and LSeg and are licensed under the Apache License 2.0. 
       Users must ensure compliance with the terms of all licenses when using this project.
-
 
    END OF TERMS AND CONDITIONS
 
