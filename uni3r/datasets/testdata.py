@@ -45,7 +45,7 @@ class TestDataset(BaseStereoViewDataset):
                     if key in self.scenes:
                         del self.scenes[key]
         # load all scenes for 360 evaluation
-        elif self.num_views == 4 or 8 or 16 or 32:
+        elif self.num_views in (8, 16, 32):
             self.scenes = {}
             # Traverse all the folders in the data_root
             scene_names = [folder for folder in os.listdir(self.ROOT) if os.path.isdir(os.path.join(self.ROOT, folder))]

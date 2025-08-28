@@ -189,7 +189,7 @@ def checkpoint_filter_fn(
                     v_output = v_output.permute(1,2,3,0).view(O,-1,C)
                     v = torch.concat((v_output, v[:,0,:].unsqueeze(1)), dim=1)
             out_dict[k] = v
-        if 'point_head' or 'camera_head' in k:
+        if ('point_head' in k) or ('camera_head' in k):
             out_dict[k] = v
     
     return out_dict

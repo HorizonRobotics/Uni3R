@@ -11,6 +11,9 @@ from torchmetrics.segmentation import MeanIoU
 from torchmetrics.classification import MulticlassJaccardIndex
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from torchvision.utils import save_image
+from uni3r.utils.umeyama import umeyama, single_direction_chamfer_loss
+
+from lpips import LPIPS
 import time
 
 
@@ -217,10 +220,12 @@ class GaussianLoss(MultiLoss):
     def __init__(self,
                  ssim_weight=0.2,
                  feature_loss_weight=0.2,
+                 geo_loss_weight=0.005,
                  labels=['wall', 'floor', 'ceiling', 'chair', 'table', 'sofa', 'bed', 'other']):
         super().__init__()
         self.ssim_weight = ssim_weight
         self.feature_loss_weight = feature_loss_weight
+        self.geo_loss_weight = geo_loss_weight
         self.labels = labels
         self.ssim = StructuralSimilarityIndexMeasure(data_range=1.0).cuda()
         self.psnr = PeakSignalNoiseRatio(data_range=1.0).cuda()
@@ -242,6 +247,9 @@ class GaussianLoss(MultiLoss):
 
     def compute_loss(self, gt, preds, target_view=None, model=None):
         pred = merge_and_split_predictions(*preds)
+        if len(target_view) == 3:
+            pred1 = preds[0]
+            pred2 = preds[1]
         for i in range(len(pred)):
             pred[i]['extr'] = torch.stack([p['extr'][i] for p in preds])
             pred[i]['intr'] = torch.stack([p['intr'][i] for p in preds])
@@ -250,6 +258,8 @@ class GaussianLoss(MultiLoss):
         rendered_images = []
         rendered_feats = []
         rendered_depths = []
+        context1_depths = []
+        context2_depths = []
         gt_images = []
 
         for i in range(len(pred)):
@@ -283,6 +293,11 @@ class GaussianLoss(MultiLoss):
                 rendered_images.append(rendered_output['render'])
                 rendered_feats.append(rendered_output['feature_map'])
                 rendered_depths.append(rendered_output['depth'])
+                if len(target_view_list) == 3:
+                    if j == 0:
+                        context1_depths.append(rendered_output['depth'] * 0.1)
+                    if j == 1:
+                        context2_depths.append(rendered_output['depth'] * 0.1)
                 gt_images.append(target_view_list[j]['img'][i] * 0.5 + 0.5)
 
         rendered_images = torch.stack(rendered_images, dim=0)
@@ -294,13 +309,30 @@ class GaussianLoss(MultiLoss):
         rendered_depths = torch.stack(rendered_depths, dim=0).squeeze(1).permute(0, 3, 1, 2)
         gt_feats = model.lseg_feature_extractor.extract_features(gt_images)  # B, 512, H//2, W//2
 
+        geo_loss = 0.0
+        if len(target_view_list) == 3:
+            # pointmap distiller loss here
+            distiller_world_points = torch.concat((pred1['distiller_world_points'].unsqueeze(1), pred2['distiller_world_points'].unsqueeze(1)), dim=1)
+            distiller_world_points_conf = torch.concat((pred1['distiller_world_points_conf'].unsqueeze(1), pred2['distiller_world_points_conf'].unsqueeze(1)), dim=1)
+            gaussian_means = torch.concat((pred1['means'].unsqueeze(1), pred2['means'].unsqueeze(1)), dim=1)        
+            geo_means = torch.nn.functional.interpolate(
+                rearrange(distiller_world_points, "b v h w c -> (b v) c h w"),
+                size=(256, 256),
+                mode='nearest'             # 'nearest', 'bilinear', 'bicubic'
+                # align_corners=False
+            )
+            geo_means = geo_means.view(distiller_world_points.shape[0], distiller_world_points.shape[1], 3, 256, 256)
+            __, __, geo_loss = umeyama(geo_means, gaussian_means, Conf_map=distiller_world_points_conf, ratio=1.0)
+
         image_loss = torch.abs(rendered_images - gt_images).mean()
-        image_loss += self.lpips(rendered_images, gt_images).mean() * 0.05
+        image_loss += self.lpips_vgg(rendered_images, gt_images).mean() * 0.05
         feature_loss = (1 - torch.nn.functional.cosine_similarity(
             rendered_feats, gt_feats, dim=1)).mean()
-        loss = image_loss + self.feature_loss_weight * feature_loss
 
-        return loss, {'image_loss': float(image_loss), 'feature_loss': float(feature_loss)}
+        loss = image_loss + self.feature_loss_weight * feature_loss + self.geo_loss_weight * geo_loss
+
+         
+        return loss, {'image_loss': float(image_loss), 'feature_loss': float(feature_loss), 'geo_loss': float(geo_loss)}
 
 
 class TestLoss(MultiLoss):
@@ -353,6 +385,11 @@ class TestLoss(MultiLoss):
 
     def compute_loss(self, gt, preds, target_view=None, model=None, pose_deltas=None, evaluate=True):
         pred = merge_and_split_predictions(*preds)
+        
+        # 添加与训练时相同的预测处理逻辑
+        for i in range(len(pred)):
+            pred[i]['extr'] = torch.stack([p['extr'][i] for p in preds])
+            pred[i]['intr'] = torch.stack([p['intr'][i] for p in preds])
 
         rendered_images = []
         rendered_feats = []
@@ -360,11 +397,13 @@ class TestLoss(MultiLoss):
         rendered_depths = []
         gt_depths = []
 
+
         for i in range(len(pred)):
             # get gaussian model
             gaussians = GaussianModel.from_predictions(pred[i], sh_degree=3)
             # get camera
-            target_view_list = target_view
+            target_view_list = [target_view[-1]]  # 使用与训练时相同的数据选择策略
+            # target_view_list = target_view
             for j in range(len(target_view_list)):
                 # target_extrinsics = target_view_list[j]['camera_pose'][i]
                 target_intrinsics = target_view_list[j]['camera_intrinsics'][i]
@@ -392,11 +431,15 @@ class TestLoss(MultiLoss):
                                            target_intrinsics, scale,
                                            image_shape)
                 # render(image and features)
-                rendered_output = render(camera, gaussians, self.pipeline, self.bg_color,
-                                         intrinsics=target_intrinsics,
-                                         extrinsics=target_extrinsics_,
-                                         scale=target_view_list[j]['scale'][i]
-                                         )
+                rendered_output = render(
+                    camera, 
+                    gaussians, 
+                    self.pipeline, 
+                    self.bg_color,
+                    intrinsics=target_intrinsics,
+                    extrinsics=target_extrinsics_,
+                    scale=target_view_list[j]['scale'][i]
+                    )
                 rendered_images.append(rendered_output['render'])
                 rendered_feats.append(rendered_output['feature_map'])
                 gt_images.append(target_view_list[j]['img'][i] * 0.5 + 0.5)
@@ -423,6 +466,22 @@ class TestLoss(MultiLoss):
         pred = pred.clamp(max=7) + 1
 
         if evaluate:
+
+            # # for context view
+            # for i in range(len(target_view_list)-2):
+            #     pred_cur = torch.where(target_view[i]["labelmap"] != 0, pred[i], 0)
+            #     self.miou.update(pred_cur, target_view[i]["labelmap"].long())
+            #     self.accuracy.update(pred_cur, target_view[i]["labelmap"].long())
+            #     self.psnr.update(rendered_images[i], gt_images[i])
+            #     self.ssim.update(rendered_images[i].unsqueeze(0), gt_images[i].unsqueeze(0))
+            #     self.update_lpips(rendered_images[i], gt_images[i])
+            #     rendered = rendered_depths[i]
+            #     gt = gt_depths[i]
+            #     device = rendered.device 
+            #     self.depth_metric = self.depth_metric.to(rendered.device) 
+            #     self.depth_metric.update(rendered.to(device), gt.to(device))
+           
+            # for target view
             for i in range(len(target_view_list)):
                 pred_cur = torch.where(target_view[-i-1]["labelmap"] != 0, pred[-i-1], 0)
                 self.miou.update(pred_cur, target_view[-i-1]["labelmap"].long())
@@ -452,6 +511,7 @@ def loss_of_one_batch(batch,
 
     context_views = []
     target_views = []
+    total_time = []
 
     assert len(batch) != 0
 
@@ -482,19 +542,22 @@ def loss_of_one_batch(batch,
     actual_model = model.module if hasattr(model, 'module') else model
 
     with torch.cuda.amp.autocast(enabled=bool(use_amp)):
-        torch.cuda.synchronize()
-        time_start = time.perf_counter()
+        # torch.cuda.synchronize()
+        # time_start = time.perf_counter()
         if actual_model.training:
             pred = actual_model(context_views)
         else:
             with torch.no_grad():
                 pred = actual_model(context_views)
-        torch.cuda.synchronize()
-        time_end = time.perf_counter()
-        elapsed = time_end - time_start
-        total_time.append(elapsed)
+        # torch.cuda.synchronize()
+        # time_end = time.perf_counter()
+        # elapsed = time_end - time_start
+        # total_time.append(elapsed)
 
-        render_views = target_views
+        if len(batch) < 5:
+            render_views = context_views + target_views
+        else:
+            render_views = target_views
 
         # loss is supposed to be symmetric
         with torch.cuda.amp.autocast(enabled=False):

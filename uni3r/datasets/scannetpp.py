@@ -20,7 +20,7 @@ class Scannetpp(BaseStereoViewDataset):
         
     def _load_data(self):
         # Traverse all the folders in the data_root
-        scene_names = [folder for folder in os.listdir(self.ROOT) if os.path.isdir(os.path.join(self.ROOT, folder))]
+        scene_names = [folder for folder in os.listdir(self.ROOT) if os.path.isdir(os.path.join(self.ROOT, folder)) and folder != 'splits']
         scene_names.sort()
 
         # merge all pairs and images
@@ -69,7 +69,7 @@ class Scannetpp(BaseStereoViewDataset):
         return len(self.pairs)
     
     def _get_views(self, idx, resolution, rng):
-        if self.num_views == 32 or self.num_views == 16 or self.num_views == 8:
+        if self.num_views in (8, 16, 32):
 
             total_nums = self.num_views
             scene_name, image_idx1, image_idx2 = self.pairs[idx]
@@ -126,6 +126,9 @@ class Scannetpp(BaseStereoViewDataset):
                     instance=f'{str(idx)}_{str(view_idx)}',
                 ))
 
+            # TODO: testing if re-scale can work well
+            # scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[self.num_views-1]['extrinsics'][:3, 3])
+
             for i, view_idx in enumerate(pick_id):
                 views[i]['extrinsics'][:3, 3] /=  scale
                 if i == 0:
@@ -136,6 +139,7 @@ class Scannetpp(BaseStereoViewDataset):
             return views
 
         else:
+            # for num_views 2
             pick_id = []
             for i in range(self.num_views):
                 pick_id.append(self.pairs[idx][i+1])
@@ -180,8 +184,7 @@ class Scannetpp(BaseStereoViewDataset):
                     instance=f'{str(idx)}_{str(view_idx)}',
                 ))
 
-            if self.num_views == 2:
-                scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[-1]['extrinsics'][:3, 3])
+            scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[1]['extrinsics'][:3, 3])
 
             for i, view_idx in enumerate(pick_id):
                 views[i]['extrinsics'][:3, 3] /=  scale

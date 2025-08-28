@@ -148,9 +148,11 @@ def test_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     print('Depth Metrics: ', criterion.depth_metric.compute())
 
     sum_time = 0.0
-    for i in range(len(total_time)):
-        sum_time += total_time[i]
-    avg_time = sum_time / len(total_time)
+    avg_time = 0.0
+    if len(total_time) > 0:
+        for i in range(len(total_time)):
+            sum_time += total_time[i]
+        avg_time = sum_time / len(total_time)
     print(f"\n⚡ Average Inference Time: {avg_time:.4f} seconds per scene")
 
     # gather the stats from all processes

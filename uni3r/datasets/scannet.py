@@ -44,10 +44,11 @@ class Scannet(BaseStereoViewDataset):
         # Traverse all the folders in the data_root
         scene_names = [folder for folder in os.listdir(self.ROOT) if os.path.isdir(os.path.join(self.ROOT, folder))]
         scene_names.sort()
-        if self.split == 'train':
-            scene_names = scene_names[:-150]
-        else:
-            scene_names = scene_names[-150:]
+        if len(scene_names) > 50:  # for debug
+            if self.split == 'train':
+                scene_names = scene_names[:-150]
+            else:
+                scene_names = scene_names[-150:]
         # merge all pairs and images
         pairs = [] # (scene_name, image_idx1, image_idx2)
         images = {} # scene_name -> list of image_paths
@@ -94,7 +95,7 @@ class Scannet(BaseStereoViewDataset):
     
     def _get_views(self, idx, resolution, rng):
 
-        if self.num_views==8 or 16 or 32:
+        if self.num_views in (8, 16, 32):
 
             total_nums = self.num_views
             scene_name, image_idx1, image_idx2 = self.pairs[idx]
@@ -151,8 +152,8 @@ class Scannet(BaseStereoViewDataset):
                     instance=f'{str(idx)}_{str(view_idx)}',
                 ))
 
-            if self.num_views == 2:
-                scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[-1]['extrinsics'][:3, 3])
+            # TODO: testing if re-scale can work well
+            # scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[self.num_views-1]['extrinsics'][:3, 3])
 
             for i, view_idx in enumerate(pick_id):
                 views[i]['extrinsics'][:3, 3] /=  scale
@@ -164,6 +165,7 @@ class Scannet(BaseStereoViewDataset):
             return views
            
         else:
+            # for num_views 2
             pick_id = []
 
             for i in range(self.num_views):
@@ -208,6 +210,8 @@ class Scannet(BaseStereoViewDataset):
                     label=scene_name + '_' + basename,
                     instance=f'{str(idx)}_{str(view_idx)}',
                 ))
+
+            scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[1]['extrinsics'][:3, 3])
 
             for i, view_idx in enumerate(pick_id):
                 views[i]['extrinsics'][:3, 3] /=  scale

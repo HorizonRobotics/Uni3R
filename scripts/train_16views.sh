@@ -3,8 +3,8 @@ ulimit -n 4096
 SAVE_DIR="checkpoints/output"
 
 torchrun --nproc_per_node=8 train.py \
-    --train_dataset "5_000 @ Scannet(split='train', ROOT='data/scannet_processed', aug_crop=0, resolution=(256, 256), num_views=32) + 5_000 @ Scannetpp(split='train', ROOT='data/scannetpp_processed', aug_crop=0, resolution=(256, 256), num_views=32)" \
-    --test_dataset "100 @ Scannet(split='val', ROOT='data/scannet_processed', resolution=(256, 256), seed=777, num_views=32)" \
+    --train_dataset "5_000 @ Scannet(split='train', ROOT='data/scannet_processed', resolution=(256, 256), num_views=16) + 5_000 @ Scannetpp(split='train', ROOT='data/scannetpp_processed', resolution=(256, 256), num_views=16)" \
+    --test_dataset "100 @ Scannet(split='val', ROOT='data/scannet_processed', resolution=(256, 256), seed=777, num_views=16)" \
     --train_criterion "GaussianLoss()" \
     --test_criterion "GaussianLoss()" \
     --lr 0.00005 \
