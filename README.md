@@ -16,7 +16,7 @@ Wei Sui, Zhizhong Su, Wenyu Liu, Xinggang Wang, Eunbyung Park
 
 ### Updating
 
-Both training and inference code is releasing! Including Geometry Loss code.
+Both training and inference code are releasing! Including Geometry Loss code.
 
 ### Installation
 1. **Download repo:**
