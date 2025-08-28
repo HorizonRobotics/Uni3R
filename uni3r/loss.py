@@ -322,7 +322,7 @@ class GaussianLoss(MultiLoss):
                 # align_corners=False
             )
             geo_means = geo_means.view(distiller_world_points.shape[0], distiller_world_points.shape[1], 3, 256, 256)
-            __, __, geo_loss = umeyama(geo_means, gaussian_means, Conf_map=distiller_world_points_conf, ratio=1.0)
+            __, __, geo_loss = umeyama(geo_means, gaussian_means, Conf_map=distiller_world_points_conf, ratio=0.9)
 
         image_loss = torch.abs(rendered_images - gt_images).mean()
         image_loss += self.lpips_vgg(rendered_images, gt_images).mean() * 0.05
