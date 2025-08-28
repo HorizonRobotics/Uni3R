@@ -8,12 +8,10 @@
 # Inspired by https://github.com/DepthAnything/Depth-Anything-V2
 
 
-import os
-from typing import List, Dict, Tuple, Union
+from typing import List, Tuple, Union
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from .head_act import activate_head
 from .utils import create_uv_grid, position_grid_to_embed
 

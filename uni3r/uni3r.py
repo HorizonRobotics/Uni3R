@@ -25,13 +25,13 @@ from uni3r.gaussian_head import GaussianHead
 from uni3r.lseg import LSegFeatureExtractor
 from uni3r.utils.points_process import merge_points
 
-from vggt.heads.dpt_head import DPTHead
 from vggt.models.vggt import VGGT
 from vggt.utils.pose_enc import pose_encoding_to_extri_intri
 
 from .utils.weight_modify import checkpoint_filter_fn
 
-from distiller.vggt.models.vggt import Distiller
+from .vggt_w_intr_emb import VGGT_IntrEmb
+from .dpt_head import DPTHead
 
 
 class Uni3R(nn.Module):
@@ -44,7 +44,7 @@ class Uni3R(nn.Module):
         weights = torch.hub.load_state_dict_from_url(_url, map_location='cpu')
 
         # loading VGGT ckpt as a distiller
-        self.distiller = Distiller()
+        self.distiller = VGGT()
         self.distiller.load_state_dict(weights, strict=True)
         print("Freezing distiller")
         self.distiller.eval()
@@ -59,7 +59,7 @@ class Uni3R(nn.Module):
         # resize the patch embedding layer: 14 -> 16
         # then using checkpoint filter to tranform the weights
         # self.vggt = VGGT(patch_size=16)
-        self.vggt = VGGT(patch_size=16, img_size=256)
+        self.vggt = VGGT_IntrEmb(patch_size=16, img_size=256)
         weights = weights.get('state_dict', weights)
         weights = checkpoint_filter_fn(weights, self.vggt)
         self.vggt.load_state_dict(weights, strict=False)

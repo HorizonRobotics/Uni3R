@@ -4,6 +4,9 @@
 [submodule "data_process/scannetpp"]
     path = data_process/scannetpp
     url = https://github.com/zjrandom951/scannetpp_lsm.git
-[submodule "submodules/3d_gaussian_splatting/diff-gaussian-rasterization/third_party/glm"]
-	path = submodules/3d_gaussian_splatting/diff-gaussian-rasterization/third_party/glm
-	url = https://github.com/g-truc/glm.git
+[submodule "submodules/diff-gaussian-rasterization"]
+	path = submodules/diff-gaussian-rasterization
+	url = https://github.com/Xiangyu1Sun/diff-gaussian-rasterization-Uni3R.git
+[submodule "submodules/vggt"]
+	path = submodules/vggt
+	url = https://github.com/facebookresearch/vggt.git
