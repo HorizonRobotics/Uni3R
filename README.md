@@ -43,8 +43,7 @@ Both training and inference code are releasing! Including Geometry Loss code.
 
 5. **Install 3D Gaussian Splatting modules:**
    ````bash
-   pip install submodules/3d_gaussian_splatting/diff-gaussian-rasterization
-   pip install submodules/3d_gaussian_splatting/simple-knn
+   pip install submodules/diff-gaussian-rasterization
    ````
 
 6. **Install OpenAI CLIP:**

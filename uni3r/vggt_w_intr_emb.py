@@ -4,6 +4,7 @@ from typing import Tuple, List
 
 from vggt.models.vggt import VGGT
 from vggt.models.aggregator import Aggregator
+from vggt.heads.dpt_head import DPTHead
 
 
 class Aggregator_IntrEmb(Aggregator):
@@ -166,6 +167,8 @@ class VGGT_IntrEmb(VGGT):
     def __init__(self, img_size=518, patch_size=14, embed_dim=1024):
         super().__init__(img_size=img_size, patch_size=patch_size, embed_dim=embed_dim)
         self.aggregator = Aggregator_IntrEmb(img_size=img_size, patch_size=patch_size, embed_dim=embed_dim)
+        self.point_head = DPTHead(dim_in=2 * embed_dim, output_dim=4, patch_size=patch_size, activation="inv_log", conf_activation="expp1")
+        self.depth_head = DPTHead(dim_in=2 * embed_dim, output_dim=2, patch_size=patch_size, activation="exp", conf_activation="expp1")
         self.intrinsics_embed_type = 'token'
 
     def forward(self, images: torch.Tensor, images_intr: torch.Tensor, query_points: torch.Tensor = None):
