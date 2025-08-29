@@ -402,7 +402,10 @@ class TestLoss(MultiLoss):
             # get gaussian model
             gaussians = GaussianModel.from_predictions(pred[i], sh_degree=3)
             # get camera
-            target_view_list = [target_view[-1]]  # 使用与训练时相同的数据选择策略
+            if len(target_view) < 5:
+                target_view_list = [target_view[-1]]
+            else:
+                target_view_list = target_view
             # target_view_list = target_view
             for j in range(len(target_view_list)):
                 # target_extrinsics = target_view_list[j]['camera_pose'][i]
