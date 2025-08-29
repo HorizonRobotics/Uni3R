@@ -68,10 +68,10 @@ Both training and inference code are releasing! Including Geometry Loss code.
 
    # 2. LSEG demo model weights
    gdown 1FTuHY1xPUkM-5gaDtMfgCl3D0gR89WV7 -O checkpoints/pretrained_models/demo_e200.ckpt
-
-   # 3. Uni3R final checkpoint
-   TODO
    ```
+
+   Please download the final Uni3R checkpoints from here, including 2, 8 and 16 views.
+   [Checkpoints](https://huggingface.co/HorizonRobotics/Uni3R)
 
 ### Data Preparation
 1. **For training**: The model can be trained on ScanNet and ScanNet++ datasets.
