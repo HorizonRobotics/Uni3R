@@ -57,8 +57,15 @@ Both training and inference code are releasing! Including Geometry Loss code.
    python setup.py build_ext --inplace
    cd ../../../../..
    ````
-
-9. **Download pre-trained models:**
+8. **Install Pytorch3d:**
+   ````bash
+   pip install git+https://github.com/facebookresearch/pytorch3d.git
+   ````
+9. **Install gsplat:**
+   ````bash
+   pip install git+https://github.com/nerfstudio-project/gsplat.git
+   ````
+10. **Download pre-trained models:**
 
    The following three model weights need to be downloaded:
 
