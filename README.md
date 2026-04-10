@@ -134,10 +134,10 @@ This work is built on many amazing research works and open-source projects, than
 If you find our work useful in your research, please consider giving a star :star: and citing the following paper :pencil:.
 
 ```bibTeX
-@misc{sun2025uni3runified3dreconstruction,
+@misc{sun2026uni3runified3dreconstruction,
       title={Uni3R: Unified 3D Reconstruction and Semantic Understanding via Generalizable Gaussian Splatting from Unposed Multi-View Images}, 
       author={Xiangyu Sun and Haoyi Jiang and Liu Liu and Seungtae Nam and Gyeongjin Kang and Xinjie Wang and Wei Sui and Zhizhong Su and Wenyu Liu and Xinggang Wang and Eunbyung Park},
-      year={2025},
+      year={2026},
       eprint={2508.03643},
       archivePrefix={arXiv},
       primaryClass={cs.CV},
