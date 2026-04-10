@@ -12,6 +12,12 @@ Wei Sui, Zhizhong Su, Wenyu Liu, Xinggang Wang, Eunbyung Park
 
 ![asd](assets/figure1.png)
 
+## ⭐ Arbitrary view model
+- 2026/04/10: Important updates - 
+Now we release the new model for arbitrary view training and evaluation!
+
+Please check the branch -> arbitrary-view for more details!!!
+
 ## Get Started
 
 ### Updating
