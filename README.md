@@ -16,7 +16,7 @@ Wei Sui, Zhizhong Su, Wenyu Liu, Xinggang Wang, Eunbyung Park
 - 2026/04/10: Important updates - 
 Now we release the new model for arbitrary view training and evaluation!
 
-Please check the branch -> arbitrary-view for more details!!!
+Please check the branch -> [arbitrary-view](https://github.com/HorizonRobotics/Uni3R/tree/arbitrary-view) for more details!!!
 
 ## Get Started
 
