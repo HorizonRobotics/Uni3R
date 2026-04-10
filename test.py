@@ -24,9 +24,10 @@ torch.backends.cuda.matmul.allow_tf32 = True  # for gpu >= Ampere and pytorch >=
 # Model
 from uni3r.uni3r import Uni3R
 # Dataset
-from uni3r.datasets.testdata import TestDataset  # noqa
+from uni3r.datasets.testdata import TestDataset, MipNeRF360Dataset  # noqa
 import dust3r.datasets
 dust3r.datasets.TestDataset = TestDataset
+dust3r.datasets.MipNeRF360Dataset = MipNeRF360Dataset
 # Loss
 from uni3r.loss import loss_of_one_batch  # noqa
 from uni3r.loss import TestLoss
@@ -148,9 +149,11 @@ def test_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     print('Depth Metrics: ', criterion.depth_metric.compute())
 
     sum_time = 0.0
-    for i in range(len(total_time)):
-        sum_time += total_time[i]
-    avg_time = sum_time / len(total_time)
+    avg_time = 0.0
+    if len(total_time) > 0:
+        for i in range(len(total_time)):
+            sum_time += total_time[i]
+        avg_time = sum_time / len(total_time)
     print(f"\n⚡ Average Inference Time: {avg_time:.4f} seconds per scene")
 
     # gather the stats from all processes

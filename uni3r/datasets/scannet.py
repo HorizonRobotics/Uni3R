@@ -44,10 +44,11 @@ class Scannet(BaseStereoViewDataset):
         # Traverse all the folders in the data_root
         scene_names = [folder for folder in os.listdir(self.ROOT) if os.path.isdir(os.path.join(self.ROOT, folder))]
         scene_names.sort()
-        if self.split == 'train':
-            scene_names = scene_names[:-150]
-        else:
-            scene_names = scene_names[-150:]
+        if len(scene_names) > 50:  # for debug
+            if self.split == 'train':
+                scene_names = scene_names[:-150]
+            else:
+                scene_names = scene_names[-150:]
         # merge all pairs and images
         pairs = [] # (scene_name, image_idx1, image_idx2)
         images = {} # scene_name -> list of image_paths
@@ -55,6 +56,7 @@ class Scannet(BaseStereoViewDataset):
             images_paths = os.listdir(osp.join(self.ROOT, scene_name, 'color'))
             images_paths.sort()
             frame_num = len(images_paths)
+
             if frame_num > 32:
                 if self.num_views == 2:
                     scene_combinations = [(i, j)
@@ -78,7 +80,17 @@ class Scannet(BaseStereoViewDataset):
                     scene_combinations = [(i, j)
                                         for i, j in itertools.combinations(range(frame_num), 2)
                                         if 0 < abs(i - j) <= 124 and abs(i - j) % 62 == 0]
-                # TODO: other nums of views input
+                elif self.num_views == 'arbitrary':
+                    scene_combinations_2 = [(i, j)
+                                        for i, j in itertools.combinations(range(frame_num), 2)
+                                        if 0 < abs(i - j) <= 4 and abs(i - j) % 2 == 0]
+                    scene_combinations_4 = [(i, j)
+                                        for i, j in itertools.combinations(range(frame_num), 2)
+                                        if 0 < abs(i - j) <= 12 and abs(i - j) % 6 == 0]
+                    scene_combinations_8 = [(i, j)
+                                        for i, j in itertools.combinations(range(frame_num), 2)
+                                        if 0 < abs(i - j) <= 28 and abs(i - j) % 14 == 0]
+                    scene_combinations = scene_combinations_2 + scene_combinations_4 + scene_combinations_8
                 else:
                     print(f"num_views is wrong!!!")
                     assert False
@@ -94,7 +106,7 @@ class Scannet(BaseStereoViewDataset):
     
     def _get_views(self, idx, resolution, rng):
 
-        if self.num_views==8 or 16 or 32:
+        if self.num_views in (8, 16, 32):
 
             total_nums = self.num_views
             scene_name, image_idx1, image_idx2 = self.pairs[idx]
@@ -151,8 +163,86 @@ class Scannet(BaseStereoViewDataset):
                     instance=f'{str(idx)}_{str(view_idx)}',
                 ))
 
-            if self.num_views == 2:
-                scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[-1]['extrinsics'][:3, 3])
+            # TODO: testing if re-scale can work well
+            # scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[self.num_views-1]['extrinsics'][:3, 3])
+
+            for i, view_idx in enumerate(pick_id):
+                views[i]['extrinsics'][:3, 3] /=  scale
+                if i == 0:
+                    extrinsics0 = views[i]['extrinsics']
+                views[i]['extrinsics'] = camera_normalization(extrinsics0, views[i]['extrinsics'])
+                views[i]['scale'] = scale
+
+            return views
+        
+        elif self.num_views == 'arbitrary':
+            
+            # TODO: arbitrary num of views input
+            scene_name, image_idx1, image_idx2 = self.pairs[idx]
+            if (image_idx2 - image_idx1) % 14 == 0:
+                total_nums = 8
+            elif (image_idx2 - image_idx1) % 6 == 0:
+                total_nums = 4
+            elif (image_idx2 - image_idx1) % 2 == 0:
+                total_nums = 2
+            else:
+                print(f"idx is not alignment with num_views, wrong!!!")
+                assert False
+            
+            image_idx1 = int(image_idx1)
+            image_idx2 = int(image_idx2)
+            idx_gap = int(abs(image_idx2 - image_idx1) / (total_nums - 1))
+
+            pick_id = []
+            # context views here
+            for i in range(total_nums):
+                pick_id.append(image_idx1 + i * idx_gap)
+
+            target_id = [(pick_id[i] + pick_id[i+1]) // 2 for i in range(len(pick_id)-1)]
+            pick_id += target_id
+
+            views = []
+
+            for i, view_idx in enumerate(pick_id):
+                basename = os.path.basename(self.images[scene_name][view_idx]).split('.')[0]
+                # Load RGB image
+                rgb_path = osp.join(self.ROOT, scene_name, 'color', f'{basename}.png')
+                # rgb_image = imread_cv2(rgb_path)
+                rgb_image = imread_cv2(rgb_path).copy()
+                # Load depthmap
+                depthmap_path = osp.join(self.ROOT, scene_name, 'depth', f'{basename}.png')
+                # depthmap = imread_cv2(depthmap_path, cv2.IMREAD_UNCHANGED)
+                depthmap = imread_cv2(depthmap_path, cv2.IMREAD_UNCHANGED).copy()
+                depthmap = depthmap.astype(np.float32) / 1000
+                depthmap[~np.isfinite(depthmap)] = 0  # invalid
+                # Load camera parameters
+                meta_path = osp.join(self.ROOT, scene_name, 'pose', f'{basename}.npz')
+                with np.load(meta_path) as meta:
+                    intrinsics = meta['camera_intrinsics']
+                    camera_pose = meta['camera_pose']
+                # meta = np.load(meta_path)
+                # intrinsics = meta['camera_intrinsics']
+                # camera_pose = meta['camera_pose']
+                # crop if necessary
+                rgb_image, depthmap, intrinsics = self._crop_resize_if_necessary(
+                    rgb_image, depthmap, intrinsics, resolution, rng=rng, info=view_idx)
+                
+                extrinsics = np.copy(camera_pose)
+                scale = np.float32(1.0)
+                # store all informations
+                views.append(dict(
+                    img=rgb_image,
+                    depthmap=depthmap.astype(np.float32),
+                    camera_pose=camera_pose.astype(np.float32),
+                    camera_intrinsics=intrinsics.astype(np.float32),
+                    extrinsics=extrinsics.astype(np.float32),
+                    scale=np.float32(scale),
+                    dataset='ScanNet',
+                    label=scene_name + '_' + basename,
+                    instance=f'{str(idx)}_{str(view_idx)}',
+                ))
+
+            scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[total_nums-1]['extrinsics'][:3, 3])
 
             for i, view_idx in enumerate(pick_id):
                 views[i]['extrinsics'][:3, 3] /=  scale
@@ -164,6 +254,7 @@ class Scannet(BaseStereoViewDataset):
             return views
            
         else:
+            # for num_views 2
             pick_id = []
 
             for i in range(self.num_views):
@@ -190,6 +281,7 @@ class Scannet(BaseStereoViewDataset):
                 meta = np.load(meta_path)
                 intrinsics = meta['camera_intrinsics']
                 camera_pose = meta['camera_pose']
+
                 # crop if necessary
                 rgb_image, depthmap, intrinsics = self._crop_resize_if_necessary(
                     rgb_image, depthmap, intrinsics, resolution, rng=rng, info=view_idx)
@@ -208,6 +300,8 @@ class Scannet(BaseStereoViewDataset):
                     label=scene_name + '_' + basename,
                     instance=f'{str(idx)}_{str(view_idx)}',
                 ))
+
+            scale = np.linalg.norm(views[0]['extrinsics'][:3, 3] - views[1]['extrinsics'][:3, 3])
 
             for i, view_idx in enumerate(pick_id):
                 views[i]['extrinsics'][:3, 3] /=  scale
