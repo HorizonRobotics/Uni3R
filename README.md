@@ -1,6 +1,6 @@
 <div align="center">
 
-# [CVPR 2026 (Highlight)] Uni3R: Unified 3D Reconstruction and Semantic Understanding via Generalizable Gaussian Splatting from Unposed Multi-View Images
+# [CVPR 2026 Highlight] Uni3R: Unified 3D Reconstruction and Semantic Understanding via Generalizable Gaussian Splatting from Unposed Multi-View Images
 
 Xiangyu Sun*, Haoyi Jiang*, Liu Liu, Seungtae Nam, Gyeongjin Kang, Xinjie Wang,</br>
 Wei Sui, Zhizhong Su, Wenyu Liu, Xinggang Wang, Eunbyung Park
